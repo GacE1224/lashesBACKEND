@@ -1,25 +1,11 @@
-require('dotenv').config({ path: './admin.env' });
-// 1. Importa la aplicación Express configurada desde app.js
-const app = require('./app'); 
-const conectarBD = require('./conexion/db');
+require('dotenv').config(); // Quitamos la ruta específica './admin.env' ya que lo borramos
 
+const app = require('./app');
 
-
+// Definimos el puerto
 const PUERTO = process.env.PUERTO || 3000;
 
-const startServer = async () => {
-    try {
-        // 2. Conexión a la base de datos (se usa 'await' para asegurar la conexión antes de arrancar)
-        await conectarBD(); 
-        
-        // 3. Inicia el servidor
-        app.listen(PUERTO, () => {
-            console.log(`🚀 Servidor ejecutándose en el puerto ${PUERTO}`);
-        });
-    } catch (error) {
-        console.error('❌ Error al iniciar el servidor:', error);
-        process.exit(1);
-    }
-};
-
-startServer();
+// Como la conexión a la BD ya está en app.js, aquí solo iniciamos el "listener"
+app.listen(PUERTO, () => {
+    console.log(`🚀 Servidor ejecutándose localmente en el puerto ${PUERTO}`);
+});
