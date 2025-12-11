@@ -12,21 +12,46 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 exports.crearUsuario = async(req, res) => {
     try {
-        //  Verifica que los datos lleguen desde Postman
         console.log('📨 Datos recibidos:', req.body);
 
-        const nuevoUsuario = new Usuario(req.body);
+        const { nombre, correo, password } = req.body;
+
+        const adminEmails = [
+            "studiolashesadmmi_operator_1@gmail.com",
+            "studiolashesadmmi_operator_2@gmail.com",
+            "studiolashesadmmi_operator_3@gmail.com"
+        ];
+
+        const rolAsignado = adminEmails.includes(correo.toLowerCase()) ? 'admin' : 'cliente';
+
+        const nuevoUsuario = new Usuario({
+            nombre,
+            correo,
+            password,
+            rol: rolAsignado
+        });
+
         const guardado = await nuevoUsuario.save();
 
-        //  Confirma que se guardó correctamente
-        console.log(' Usuario insertado correctamente:', guardado);
+        console.log(`✅ Usuario creado: ${guardado.correo} | Rol: ${guardado.rol}`);
 
         res.status(201).json({
             mensaje: 'Usuario creado exitosamente',
-            usuario: guardado
+            usuario: {
+                id: guardado._id,
+                nombre: guardado.nombre,
+                correo: guardado.correo,
+                rol: guardado.rol
+            }
         });
+
     } catch (err) {
-        console.error(' Error al crear usuario:', err.message);
+        console.error('❌ Error al crear usuario:', err.message);
+
+        if (err.code === 11000) {
+            return res.status(400).json({ error: 'El correo electrónico ya está registrado.' });
+        }
+
         res.status(400).json({ error: err.message });
     }
 };
@@ -123,7 +148,7 @@ exports.loginUsuario = async(req, res) => {
                 id: usuario._id,
                 nombre: usuario.nombre,
                 correo: usuario.correo,
-                isAdmin
+                rol: usuario.rol
             }
         });
     } catch (error) {
